@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/HubSpot/sortable/master/css/sortable-theme-bootstrap.css">
+        <script src="https://cdn.rawgit.com/HubSpot/sortable/master/js/sortable.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.15.0/lodash.min.js"></script>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <style type="text/css">
+         table {
+             width: 80% !important;
+             margin: 0 auto;
+         }
+         table td {
+             vertical-align: middle !important;
+         }
+         table tr td:first-child {
+             width: 15px;
+             padding: 0;
+             vertical-align: middle;
+             text-align: center;
+             color: white;
+             font-size: 70%;
+         }
+
+         .categoria {
+             transform: rotate(270deg);
+             height: 100%;
+             width: 100%;
+         }
+         .ceh td:first-child {
+             background-color: #f58b45;
+         }
+         .ceh td:first-child > div::before {
+             content: "CEH";
+         }
+
+         .dyc td:first-child {
+             background-color: #3abaaf;
+         }
+         .dyc td:first-child > div::before {
+             content: "DyC";
+         }
+
+         .c td:first-child {
+             background-color: #7c4194;
+         }
+         .c td:first-child > div::before {
+             content: "C";
+         }
+
+         .is td:first-child {
+             background-color: #c15180;
+         }
+         .is td:first-child > div::before {
+             content: "IS";
+         }
+
+         .meter {
+             width: 90%;
+             background-color: lightgray;
+         }
+         .meter span {
+             background-color: green;
+             display: block;
+             text-align: right;
+             font-size: 10px;
+             line-height: 20px;
+             color: lightgray;
+             padding-right: 2px;
+             padding-left: 2px;
+         }
+
+         img {
+             height: 40px;
+         }
+
+         ul.cumplimiento {
+             list-style-type: none;
+             padding: 0;
+             display: flex;
+             flex-direction: row;
+             justify-content: space-between;
+             font-size: 11px;
+             margin: 0;
+         }
+
+         ul.cumplimiento li {
+             flex: 0 1 100%;
+             color: rgba(0,0,0,0.5);
+             border-top: 2px solid rgba(0,0,0,0.2);
+             text-align: center;
+             position: relative;
+         }
+
+         ul.cumplimiento li.active {
+             border-top: 2px solid rgba(0,0,0,1);
+             color: rgba(0,0,0,1);
+         }
+
+         ul.cumplimiento li span {
+             display: none;
+             position: absolute;
+             top: -234%;
+             left: 30%;
+             font-size: 37px;
+             text-align: center;
+         }
+
+         ul.cumplimiento li.active span {
+             display: block;
+
+         }
+        </style>
+    </head>
+    <body>
+        <div>
+            <table class="table sortable-theme-bootstrap" data-sortable>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Compromiso</th>
+                        <th>Cumplimiento</th>
+                        <th>Porcentaje completado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <script type="text/javascript">
+
+         function pad(num, size) {
+             return ('000000000' + num).substr(-size);
+         }
+
+         var CATEGORIAS = {
+             'Ciudad a Escala Humana': 'ceh',
+             'Disfrute y Convivencia': 'dyc',
+             'Creatividad': 'c',
+             'Integración Social': 'is'
+         };
+
+         var YEARS = _.range(2016, 2019+1);
+
+         var columns = {
+             categoria: {
+                 html: _.constant('<div class="categoria"></div>'),
+                 value: _.identity
+             },
+             compromiso: {
+                 html: function(c, row) {
+                     return '<img src="icons/GCBA-compromisos-icons-'+pad(row.numero, 2)+'.svg">' + c;
+                 }
+             },
+             cumplimiento: {
+                 html: function(c) {
+                     var s = '<ul class="cumplimiento">';
+                     s += _.reduce(YEARS, function(acc, y) {
+                         return acc + ('<li class="'+(y == c ? 'active': '')+'"><span>&bull;</span>' + y + '</li>');
+                     }, '');
+                     s += '</ul>';
+                     return s;
+                 }
+             },
+             porcentaje_completado: {
+                 html: function(c) {
+                     var content = parseInt(c) > 10 ? c + '%' : '&nbsp;';
+                     return '<div class="meter"><span style="width: '+c+'%">'+content+'</span></div>';
+                 }
+             }
+         };
+
+         var tbody = d3.select('table tbody');
+         d3.csv('master_compromisos.csv', function(error, result) {
+             var tr = tbody.selectAll('tr')
+                           .data(result)
+                           .enter()
+                           .append('tr')
+                           .attr('class', function(d) { return CATEGORIAS[d.categoria]; })
+                           .selectAll('td')
+                           .data(function(row, i) {
+                               return _.map(columns,
+                                            function(value, col) {
+                                                return _.merge(
+                                                    {
+                                                        html: row[col],
+                                                    },
+                                                    {
+                                                        html: !_.isUndefined(value.html) ? value.html(row[col], row) : undefined,
+                                                        className: !_.isUndefined(value.className) ? value.className(row[col], row) : undefined,
+                                                        value: !_.isUndefined(value.value) ? value.value(row[col], row) : undefined
+                                                    }
+                                                );
+                                            })
+                           })
+                           .enter()
+                           .append('td')
+                           .html(_.property('html'))
+                           .attr('class', function(d) {
+                               return d.className
+                           })
+                           .attr('data-value', _.property('value'));
+         });
+         /*
+         $(document).ready(function() {
+	     $('table').tableSort();
+	 });
+
+         */
+        </script>
+    </body>
+</html>
