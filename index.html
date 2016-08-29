@@ -122,7 +122,7 @@
                         <th></th>
                         <th>Compromiso</th>
                         <th>Cumplimiento</th>
-                        <th>Porcentaje completado</th>
+                        <th data-sortable-type="numeric">Porcentaje completado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,7 +168,8 @@
                  html: function(c) {
                      var content = parseInt(c) > 10 ? c + '%' : '&nbsp;';
                      return '<div class="meter"><span style="width: '+c+'%">'+content+'</span></div>';
-                 }
+                 },
+                 value: parseInt
              }
          };
 
@@ -186,6 +187,7 @@
                                                 return _.merge(
                                                     {
                                                         html: row[col],
+                                                        col: col
                                                     },
                                                     {
                                                         html: !_.isUndefined(value.html) ? value.html(row[col], row) : undefined,
@@ -203,12 +205,6 @@
                            })
                            .attr('data-value', _.property('value'));
          });
-         /*
-         $(document).ready(function() {
-	     $('table').tableSort();
-	 });
-
-         */
         </script>
     </body>
 </html>
