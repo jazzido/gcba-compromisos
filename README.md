@@ -1,6 +1,6 @@
 # gcba-compromisos
 
-Exploración de diseño para el los [compromisos de gobierno de la ciudad de Buenos Aires](http://www.buenosaires.gob.ar/compromisos)
+Exploración de diseño para los [compromisos de gobierno de la ciudad de Buenos Aires](http://www.buenosaires.gob.ar/compromisos)
 
 Demo: http://blog.jazzido.com/gcba-compromisos
 
